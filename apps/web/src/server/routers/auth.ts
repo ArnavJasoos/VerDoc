@@ -1,7 +1,13 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { and, eq } from "drizzle-orm";
-import { db, organizations, users } from "@verdoc/db";
+import {
+  db,
+  grantAssignment,
+  organizations,
+  seedOrgRbac,
+  users,
+} from "@verdoc/db";
 import {
   clearRefreshCookie,
   endSession,
@@ -66,6 +72,17 @@ export const authRouter = router({
             passwordHash: await hashPassword(input.password),
           })
           .returning();
+        // Seed this org's RBAC (roles + role_permissions) and make the creator
+        // the org owner (plan §6 "creator owns"). Same transaction so an org can
+        // never exist without its roles or its owner.
+        await seedOrgRbac(tx, org!.id);
+        await grantAssignment(tx, {
+          orgId: org!.id,
+          userId: user!.id,
+          roleName: "owner",
+          scopeType: "organization",
+          scopeId: org!.id,
+        });
         return user!;
       });
 

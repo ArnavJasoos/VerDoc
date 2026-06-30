@@ -15,6 +15,20 @@
       "when": 1782804562421,
       "tag": "0001_polite_romulus",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1782807323303,
+      "tag": "0002_confused_nitro",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1782808425697,
+      "tag": "0003_white_songbird",
+      "breakpoints": true
     }
   ]
 }
