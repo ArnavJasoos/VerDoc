@@ -1,12 +1,21 @@
 import { sql } from "drizzle-orm";
 import {
   boolean,
+  customType,
   pgTable,
   text,
   timestamp,
   unique,
   uuid,
 } from "drizzle-orm/pg-core";
+
+// Postgres BYTEA <-> Node Buffer. The Yjs document state is a binary blob
+// (plan §2.1); it is the sole source of truth for live body content.
+const bytea = customType<{ data: Buffer; default: false }>({
+  dataType() {
+    return "bytea";
+  },
+});
 
 // --- Identity & tenancy -----------------------------------------------------
 
@@ -87,6 +96,19 @@ export const documents = pgTable("documents", {
     .defaultNow(),
 });
 
+// --- Live document body: Yjs state blob (plan §2.1, written by collab server)
+
+export const ydocState = pgTable("ydoc_state", {
+  documentId: uuid("document_id")
+    .primaryKey()
+    .references(() => documents.id, { onDelete: "cascade" }),
+  state: bytea("state").notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
 export type Organization = typeof organizations.$inferSelect;
 export type User = typeof users.$inferSelect;
 export type Document = typeof documents.$inferSelect;
+export type YdocState = typeof ydocState.$inferSelect;

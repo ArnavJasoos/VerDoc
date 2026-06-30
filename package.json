@@ -3,8 +3,9 @@
   "private": true,
   "packageManager": "pnpm@11.9.0",
   "scripts": {
-    "dev": "turbo run dev",
-    "build": "turbo run build",
+    "env:sync": "node scripts/sync-env.mjs",
+    "dev": "node scripts/sync-env.mjs && turbo run dev",
+    "build": "node scripts/sync-env.mjs && turbo run build",
     "lint": "turbo run lint",
     "typecheck": "turbo run typecheck",
     "db:generate": "pnpm --filter @verdoc/db generate",

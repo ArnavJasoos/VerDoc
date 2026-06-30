@@ -3,8 +3,8 @@
 import { use } from "react";
 import Link from "next/link";
 import { AppShell } from "@/components/AppShell";
-import { LocalEditor } from "@/components/editor/LocalEditor";
-import { trpc } from "@/lib/trpc";
+import { CollabEditor } from "@/components/editor/CollabEditor";
+import { tokenStore, trpc } from "@/lib/trpc";
 
 export default function EditorPage({
   params,
@@ -13,6 +13,10 @@ export default function EditorPage({
 }) {
   const { docId } = use(params);
   const doc = trpc.documents.get.useQuery({ id: docId });
+  // AppShell already gates on a loaded session, so the access token is normally
+  // present here. Guard anyway: never mount the collab editor with a blank token
+  // (it would auth-fail on the server and sit "Connecting…" forever).
+  const token = tokenStore.get();
 
   return (
     <AppShell>
@@ -27,10 +31,14 @@ export default function EditorPage({
         ) : doc.data ? (
           <>
             <div className="editor-title">{doc.data.title}</div>
-            <div className="banner">
-              Local draft (M0). Real-time collaboration &amp; saving arrive in M1.
-            </div>
-            <LocalEditor />
+            {token ? (
+              <CollabEditor docId={docId} token={token} />
+            ) : (
+              <p className="error">
+                Your session expired. <Link href="/login">Sign in again</Link>{" "}
+                to keep editing.
+              </p>
+            )}
           </>
         ) : null}
       </div>
