@@ -329,6 +329,107 @@ input:focus {
   font-size: 13px;
 }
 
+/* Versioning + approval (M4) */
+.version-panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 16px;
+  margin-bottom: 16px;
+}
+
+.muted-label {
+  color: var(--muted);
+  font-size: 12px;
+  margin: 8px 0 6px;
+}
+
+.status-badge,
+.kind-badge {
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 999px;
+  padding: 2px 10px;
+  text-transform: capitalize;
+}
+.status-working {
+  background: rgba(154, 163, 178, 0.18);
+  border: 1px solid var(--muted);
+}
+.status-pending_approval {
+  background: rgba(245, 158, 11, 0.18);
+  border: 1px solid #f59e0b;
+}
+.status-approved {
+  background: rgba(16, 185, 129, 0.18);
+  border: 1px solid #10b981;
+}
+.kind-badge {
+  background: rgba(99, 102, 241, 0.14);
+  border: 1px solid var(--border);
+}
+
+.history-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.history-table td {
+  padding: 5px 8px;
+  border-top: 1px solid var(--border);
+}
+
+.diff {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px;
+  font-size: 12px;
+  white-space: pre-wrap;
+  overflow-x: auto;
+}
+.diff-add {
+  color: #10b981;
+}
+.diff-del {
+  color: var(--danger);
+}
+.diff-same {
+  color: var(--muted);
+}
+
+/* Notifications bell */
+.bell-wrap {
+  position: relative;
+}
+.bell-badge {
+  background: var(--danger);
+  color: #fff;
+  border-radius: 999px;
+  font-size: 10px;
+  padding: 0 5px;
+  margin-left: 4px;
+}
+.bell-menu {
+  position: absolute;
+  right: 0;
+  top: 36px;
+  width: 300px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px;
+  z-index: 40;
+}
+.bell-item {
+  font-size: 13px;
+  padding: 6px 0;
+  border-top: 1px solid var(--border);
+}
+.bell-item.unread {
+  font-weight: 600;
+}
+
 /* Live collaborator carets (CollaborationCursor) */
 .collaboration-cursor__caret {
   position: relative;

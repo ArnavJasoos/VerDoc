@@ -1,0 +1,2 @@
+CREATE INDEX IF NOT EXISTS "notifications_user_unread_idx" ON "notifications" USING btree ("user_id") WHERE "notifications"."read_at" is null;--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "versions_doc_kind_no_idx" ON "versions" USING btree ("document_id","kind","version_no");

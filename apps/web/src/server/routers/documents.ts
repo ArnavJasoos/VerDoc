@@ -121,6 +121,41 @@ export const documentsRouter = router({
       return doc;
     }),
 
+  // Trash a document. Requires can_delete, and is blocked while the doc is
+  // pending approval (plan §2.4 guard rail).
+  trash: protectedProcedure
+    .input(z.object({ id: z.string().uuid() }))
+    .mutation(async ({ ctx, input }) => {
+      const access = await authorize({
+        userId: ctx.user.id,
+        orgId: ctx.user.orgId,
+        permission: "can_delete",
+        scopeType: "document",
+        scopeId: input.id,
+      });
+      if (!access.allowed) throw new TRPCError({ code: "FORBIDDEN" });
+
+      const [doc] = await db
+        .select({ status: documents.status })
+        .from(documents)
+        .where(
+          and(eq(documents.id, input.id), eq(documents.orgId, ctx.user.orgId)),
+        )
+        .limit(1);
+      if (!doc) throw new TRPCError({ code: "NOT_FOUND" });
+      if (doc.status === "pending_approval") {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Cannot trash a document while it is pending approval",
+        });
+      }
+      await db
+        .update(documents)
+        .set({ trashed: true })
+        .where(eq(documents.id, input.id));
+      return { ok: true };
+    }),
+
   // Read-only access descriptor that drives UI display ONLY (plan §6). The real
   // enforcement is on each mutating call + the collab server, never here.
   myAccess: protectedProcedure
