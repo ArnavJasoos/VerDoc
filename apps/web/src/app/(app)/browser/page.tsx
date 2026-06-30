@@ -51,6 +51,7 @@ export default function BrowserPage() {
                 <div className="title">{d.title}</div>
                 <div className="meta">
                   {d.status} · edited {timeAgo(new Date(d.updatedAt))}
+                  {d.lastEditorName ? ` by ${d.lastEditorName}` : ""}
                 </div>
               </Link>
             ))}

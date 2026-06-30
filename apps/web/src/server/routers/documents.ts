@@ -1,11 +1,16 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
-import { and, desc, eq } from "drizzle-orm";
-import { db, documents } from "@verdoc/db";
+import { aliasedTable, and, desc, eq } from "drizzle-orm";
+import { db, documents, users } from "@verdoc/db";
 import { protectedProcedure, router } from "../trpc";
+
+const lastEditor = aliasedTable(users, "last_editor");
 
 export const documentsRouter = router({
   // Org-scoped list, newest first. Every query filters by org_id (plan §6).
+  // The collab server's onStoreDocument keeps updated_at / last_editor_id fresh,
+  // so cards show accurate "edited Nh ago by X" (plan §2.5). lastEditorName is a
+  // derived read-model field — joined here, never stored on the documents row.
   list: protectedProcedure.query(async ({ ctx }) => {
     return db
       .select({
@@ -15,8 +20,10 @@ export const documentsRouter = router({
         updatedAt: documents.updatedAt,
         createdAt: documents.createdAt,
         lastEditorId: documents.lastEditorId,
+        lastEditorName: lastEditor.displayName,
       })
       .from(documents)
+      .leftJoin(lastEditor, eq(documents.lastEditorId, lastEditor.id))
       .where(
         and(
           eq(documents.orgId, ctx.user.orgId),
