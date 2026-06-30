@@ -4,7 +4,7 @@ import { Server } from "@hocuspocus/server";
 import { Database } from "@hocuspocus/extension-database";
 import { jwtVerify } from "jose";
 import { eq } from "drizzle-orm";
-import { db, documents, ydocState } from "@verdoc/db";
+import { authorize, db, documents, ydocState } from "@verdoc/db";
 
 const PORT = Number(process.env.COLLAB_PORT ?? 1234);
 
@@ -25,9 +25,14 @@ interface CollabContext {
 const server = Server.configure({
   port: PORT,
   // The collab server validates the SAME access JWT the web API issues
-  // (plan §4 shared secret), then enforces tenant isolation (§0 law). RBAC
-  // (viewer-cannot-edit) is M3; M1 only blocks cross-org access.
-  async onAuthenticate({ token, documentName }): Promise<CollabContext> {
+  // (plan §4 shared secret), then runs the SAME authorize() gate as the API
+  // (plan §6). This is the real "viewer cannot edit" boundary: a user without
+  // can_edit connects read-only; without can_view they cannot connect at all.
+  async onAuthenticate({
+    token,
+    documentName,
+    connection,
+  }): Promise<CollabContext> {
     if (!UUID_RE.test(documentName)) throw new Error("Invalid room");
 
     let sub: string | undefined;
@@ -36,22 +41,35 @@ const server = Server.configure({
       const { payload } = await jwtVerify(token, secret);
       sub = payload.sub;
       // orgId is trusted from the short-lived access-token claim (set at
-      // issuance). OK for M1's one-org-per-user model. TODO(M3): if org
-      // membership can change, an outstanding access token carries a stale
-      // orgId — re-derive from the DB user row, or invalidate tokens on change.
+      // issuance). OK for one-org-per-user. TODO: if org membership can change,
+      // an outstanding access token carries a stale orgId — re-derive from the
+      // DB user row, or invalidate tokens on change.
       orgId = String(payload.orgId);
     } catch {
       throw new Error("Unauthorized");
     }
     if (!sub) throw new Error("Unauthorized");
 
-    const [doc] = await db
-      .select({ orgId: documents.orgId })
-      .from(documents)
-      .where(eq(documents.id, documentName))
-      .limit(1);
-    if (!doc) throw new Error("Not found");
-    if (doc.orgId !== orgId) throw new Error("Forbidden");
+    // authorize() denies cross-org / missing documents, so tenant isolation is
+    // covered here too.
+    const canView = await authorize({
+      userId: sub,
+      orgId,
+      permission: "can_view",
+      scopeType: "document",
+      scopeId: documentName,
+    });
+    if (!canView.allowed) throw new Error("Forbidden");
+
+    const canEdit = await authorize({
+      userId: sub,
+      orgId,
+      permission: "can_edit",
+      scopeType: "document",
+      scopeId: documentName,
+    });
+    // Read-only viewers stay connected (live updates) but cannot write back.
+    if (!canEdit.allowed) connection.readOnly = true;
 
     return { userId: sub, orgId };
   },

@@ -16,3 +16,6 @@ if (process.env.NODE_ENV !== "production") globalForDb.__verdocPool = pool;
 export const db = drizzle(pool, { schema });
 export { schema };
 export * from "./schema";
+export * from "./rbac";
+export * from "./authorize";
+export * from "./seed";

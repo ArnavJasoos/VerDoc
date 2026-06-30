@@ -268,6 +268,67 @@ input:focus {
   font-size: 10px;
 }
 
+/* RBAC role badge + share dialog (M3) */
+.role-badge {
+  text-transform: capitalize;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text);
+  background: rgba(99, 102, 241, 0.18);
+  border: 1px solid var(--accent);
+  border-radius: 999px;
+  padding: 2px 10px;
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: grid;
+  place-items: center;
+  z-index: 50;
+}
+
+.modal {
+  width: 100%;
+  max-width: 460px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.share-form {
+  display: flex;
+  gap: 8px;
+  margin: 16px 0 6px;
+}
+
+.share-form input {
+  flex: 1;
+}
+
+.share-form select {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  padding: 0 8px;
+}
+
+.share-list {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.share-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+}
+
 /* Live collaborator carets (CollaborationCursor) */
 .collaboration-cursor__caret {
   position: relative;
