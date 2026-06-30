@@ -5,6 +5,7 @@ import Link from "next/link";
 import { AppShell } from "@/components/AppShell";
 import { CollabEditor } from "@/components/editor/CollabEditor";
 import { ShareDialog } from "@/components/editor/ShareDialog";
+import { VersionPanel } from "@/components/editor/VersionPanel";
 import { useSession } from "@/lib/session";
 import { tokenStore, trpc } from "@/lib/trpc";
 
@@ -14,6 +15,7 @@ export default function EditorPage({
   params: Promise<{ docId: string }>;
 }) {
   const { docId } = use(params);
+  const utils = trpc.useUtils();
   const doc = trpc.documents.get.useQuery({ id: docId });
   // Display-only access info (plan §6): the server already enforces every
   // mutation + the collab connection; this just decides which controls to show.
@@ -56,6 +58,21 @@ export default function EditorPage({
                 )}
               </div>
             </div>
+            {access.data && (
+              <VersionPanel
+                docId={docId}
+                status={doc.data.status}
+                access={{
+                  canSubmit: access.data.canSubmit,
+                  canApprove: access.data.canApprove,
+                  canViewHistory: access.data.canViewHistory,
+                }}
+                onChanged={() => {
+                  void utils.documents.get.invalidate({ id: docId });
+                  void utils.documents.myAccess.invalidate({ id: docId });
+                }}
+              />
+            )}
             {token && user ? (
               <CollabEditor
                 docId={docId}

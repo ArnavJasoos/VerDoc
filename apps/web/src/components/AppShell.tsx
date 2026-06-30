@@ -4,6 +4,7 @@ import { useEffect, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useSession } from "@/lib/session";
+import { NotificationsBell } from "@/components/NotificationsBell";
 
 function initials(name: string): string {
   return name
@@ -39,6 +40,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           VerDoc
         </Link>
         <div className="who">
+          <NotificationsBell />
           <span
             className="avatar"
             style={{ background: user.avatarColor }}
