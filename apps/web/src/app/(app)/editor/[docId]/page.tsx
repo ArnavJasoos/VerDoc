@@ -4,6 +4,7 @@ import { use } from "react";
 import Link from "next/link";
 import { AppShell } from "@/components/AppShell";
 import { CollabEditor } from "@/components/editor/CollabEditor";
+import { useSession } from "@/lib/session";
 import { tokenStore, trpc } from "@/lib/trpc";
 
 export default function EditorPage({
@@ -13,6 +14,8 @@ export default function EditorPage({
 }) {
   const { docId } = use(params);
   const doc = trpc.documents.get.useQuery({ id: docId });
+  // Identity comes from the one session source (plan §8); presence uses it.
+  const { user } = useSession();
   // AppShell already gates on a loaded session, so the access token is normally
   // present here. Guard anyway: never mount the collab editor with a blank token
   // (it would auth-fail on the server and sit "Connecting…" forever).
@@ -31,8 +34,12 @@ export default function EditorPage({
         ) : doc.data ? (
           <>
             <div className="editor-title">{doc.data.title}</div>
-            {token ? (
-              <CollabEditor docId={docId} token={token} />
+            {token && user ? (
+              <CollabEditor
+                docId={docId}
+                token={token}
+                user={{ id: user.id, name: user.displayName, color: user.avatarColor }}
+              />
             ) : (
               <p className="error">
                 Your session expired. <Link href="/login">Sign in again</Link>{" "}
